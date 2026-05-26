@@ -45,6 +45,7 @@ const ADDITIONAL_SHIMS = {
   '@voiden/sdk': "const _s=window.__voiden_shims__['@voiden/sdk']||{};export default _s;export const {PipelineStage,PluginContext,RequestCompilationContext,SlashCommandGroup,UIExtension}=_s;",
   '@voiden/sdk/shared': "const _s=window.__voiden_shims__['@voiden/sdk/shared']||{};export default _s;export const {Request,RequestParam,parseCookies}=_s;",
   'tippy.js': "const _s=window.__voiden_shims__['tippy.js']||{};export default _s;",
+  'buffer': "export const Buffer=globalThis.Buffer;export default{Buffer:globalThis.Buffer};",
 }
 Object.assign(STATIC_SHIMS, ADDITIONAL_SHIMS)
 
@@ -72,6 +73,7 @@ const CORE_EXPORTS = {
 function shimPlugin() {
   return {
     name: 'voiden-shims',
+    enforce: 'pre',
     resolveId(id) {
       if (id in STATIC_SHIMS) return `\0shim:${id}`
       if (id in CORE_EXPORTS) return `\0shim:${id}`
@@ -92,7 +94,7 @@ function shimPlugin() {
     },
     renderChunk(code) {
       const mfStr = JSON.stringify(manifest)
-      return { code: `export const __voiden_bundle_version__=2;\nexport const __voiden_manifest__=${mfStr};\n${code}`, map: null }
+      return { code: `globalThis["__voiden_bundle_version__"]=2;\nexport const __voiden_bundle_version__=2;\nexport const __voiden_manifest__=${mfStr};\n${code}`, map: null }
     }
   }
 }
