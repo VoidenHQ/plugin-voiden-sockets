@@ -22,7 +22,7 @@ const STATIC_SHIMS = {
 
 // Additional runtime shims for host-provided packages
 const ADDITIONAL_SHIMS = {
-  '@tiptap/core': "const _s=window.__voiden_shims__['@tiptap/core']||{};export default _s;export const {Editor,Extension,Node,NodeViewProps,Range,JSONContent,generateJSON,mergeAttributes}=_s;",
+  '@tiptap/core': "const _s=window.__voiden_shims__['@tiptap/core']||{};export default _s;export const {Editor,Extension,Node,NodeViewProps,Range,JSONContent,generateJSON,mergeAttributes,getSchema}=_s;",
   '@tiptap/pm/model': "const _s=window.__voiden_shims__['@tiptap/pm/model']||{};export default _s;export const {DOMParser,Fragment,Node,Slice}=_s;",
   '@tiptap/pm/state': "const _s=window.__voiden_shims__['@tiptap/pm/state']||{};export default _s;export const {EditorState,Plugin,PluginKey}=_s;",
   '@tiptap/pm/tables': "const _s=window.__voiden_shims__['@tiptap/pm/tables']||{};export default _s;export const {CellSelection}=_s;",
