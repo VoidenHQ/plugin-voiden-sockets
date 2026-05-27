@@ -28,4 +28,5 @@ jobs:
           files: |
             dist/voiden-sockets-grpcs.js
             dist/voiden-sockets-grpcs-runner.js
+            src/skill.md
             manifest.json
