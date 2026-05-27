@@ -30,18 +30,6 @@ const ADDITIONAL_SHIMS = {
   '@tiptap/suggestion': "const _s=window.__voiden_shims__['@tiptap/suggestion']||{};export default _s;",
   'lucide-react': "const _s=window.__voiden_shims__['lucide-react']||{};export default _s;export const {AlertCircle,ArrowDown,ArrowDownLeft,ArrowLeft,ArrowLeftRight,ArrowRight,ArrowUp,ArrowUpRight,BookOpen,Check,CheckCheck,ChevronDown,ChevronRight,ChevronsDownUp,ChevronsUpDown,Circle,CircleAlert,CircleX,Clock,Copy,CornerDownLeft,CornerDownRight,Download,ExternalLink,Eye,FileDown,FileText,Folder,FolderOpen,History,Info,Link,Loader,Loader2,Mouse,Pen,Pencil,Play,Plus,Radio,Rows,Search,SkipForward,Sparkles,Square,Trash2,Unlink,Wifi,WifiOff,WrapText,X,XCircle}=_s;",
   'zustand': "const _s=window.__voiden_shims__['zustand']||{};export default _s;export const {create}=_s;",
-  '@faker-js/faker': "const _s=window.__voiden_shims__['@faker-js/faker']||{};export default _s;export const {faker}=_s;",
-  'js-yaml': "const _s=window.__voiden_shims__['js-yaml']||{};export default _s;export const {load,dump,loadAll}=_s;",
-  'unified': "const _s=window.__voiden_shims__['unified']||{};export default _s;export const {unified}=_s;",
-  'prosemirror-markdown': "const _s=window.__voiden_shims__['prosemirror-markdown']||{};export default _s;export const {defaultMarkdownParser,defaultMarkdownSerializer}=_s;",
-  'shell-quote': "const _s=window.__voiden_shims__['shell-quote']||{};export default _s;export const {parse,quote,ControlOperator,ParseEntry}=_s;",
-  'remark-gfm': "const _s=window.__voiden_shims__['remark-gfm']||{};export default _s;",
-  'remark-parse': "const _s=window.__voiden_shims__['remark-parse']||{};export default _s;",
-  'remark-stringify': "const _s=window.__voiden_shims__['remark-stringify']||{};export default _s;",
-  'react-markdown': "const _s=window.__voiden_shims__['react-markdown']||{};export default _s;",
-  'markdown-it': "const _s=window.__voiden_shims__['markdown-it']||{};export default _s;",
-  'yaml': "const _s=window.__voiden_shims__['yaml']||{};export default _s;export const {parse,stringify}=_s;",
-  'xlsx-js-style': "const _s=window.__voiden_shims__['xlsx-js-style']||{};export default _s;",
   '@voiden/sdk': "const _s=window.__voiden_shims__['@voiden/sdk']||{};export default _s;export const {PipelineStage,PluginContext,RequestCompilationContext,SlashCommandGroup,UIExtension}=_s;",
   '@voiden/sdk/shared': "const _s=window.__voiden_shims__['@voiden/sdk/shared']||{};export default _s;export const {Request,RequestParam,parseCookies}=_s;",
   'tippy.js': "const _s=window.__voiden_shims__['tippy.js']||{};export default _s;",
@@ -77,10 +65,6 @@ function shimPlugin() {
     resolveId(id) {
       if (id in STATIC_SHIMS) return `\0shim:${id}`
       if (id in CORE_EXPORTS) return `\0shim:${id}`
-      // Catch-all: shim any bare package specifier not already handled
-      if (!id.startsWith('.') && !id.startsWith('/') && !id.startsWith('\0') && !id.startsWith('node:') && !id.startsWith('\\')) {
-        return `\0shim:${id}`
-      }
       return null
     },
     load(id) {
