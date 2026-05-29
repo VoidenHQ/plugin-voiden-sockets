@@ -1,0 +1,54 @@
+[
+  {
+    "version": "v1.1.4",
+    "date": "29/05/2026",
+    "title": "Build Fix",
+    "changes": {
+      "Fixed": [
+        "Remove catch-all shim from build pipeline for correct dependency bundling"
+      ]
+    }
+  },
+  {
+    "version": "v1.1.2",
+    "date": "27/05/2026",
+    "title": "Theme & Error Surfacing Fixes",
+    "changes": {
+      "Fixed": [
+        "Border colors in gRPC and WebSocket UI components are now theme-aware",
+        "gRPC connection failures now surface the actual error message in the response panel",
+        "Removed catch-all shim block"
+      ]
+    }
+  },
+  {
+    "version": "v1.1.0",
+    "date": "15/04/2026",
+    "title": "gRPC Streaming & Proto Selector",
+    "changes": {
+      "Added": [
+        "Server-streaming gRPC calls",
+        "Native file dialog for .proto file selection",
+        "gRPC metadata (header) support"
+      ],
+      "Fixed": [
+        "Protocol detection for imported gRPC files",
+        "WebSocket reconnect on connection drop"
+      ]
+    }
+  },
+  {
+    "version": "v1.0.0",
+    "date": "01/04/2026",
+    "title": "Initial Release",
+    "description": "WebSocket and gRPC support for Voiden.",
+    "changes": {
+      "Added": [
+        "WebSocket connection with send/receive message view",
+        "gRPC unary and client-streaming calls",
+        "Proto file import and method selection",
+        "Connection status indicator"
+      ]
+    }
+  }
+]
