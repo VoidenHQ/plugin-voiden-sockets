@@ -33,6 +33,8 @@ const ADDITIONAL_SHIMS = {
   '@voiden/sdk': "const _s=window.__voiden_shims__['@voiden/sdk']||{};export default _s;export const {PipelineStage,PluginContext,RequestCompilationContext,SlashCommandGroup,UIExtension}=_s;",
   '@voiden/sdk/shared': "const _s=window.__voiden_shims__['@voiden/sdk/shared']||{};export default _s;export const {Request,RequestParam,parseCookies}=_s;",
   'tippy.js': "const _s=window.__voiden_shims__['tippy.js']||{};export default _s;",
+  'react-markdown': "const _s=window.__voiden_shims__['react-markdown']||{};export default _s?.default??_s;",
+  'remark-gfm': "const _s=window.__voiden_shims__['remark-gfm']||{};export default _s?.default??_s;",
   'buffer': "export const Buffer=globalThis.Buffer;export default{Buffer:globalThis.Buffer};",
 }
 Object.assign(STATIC_SHIMS, ADDITIONAL_SHIMS)
