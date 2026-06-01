@@ -65,7 +65,9 @@ function shimPlugin() {
     name: 'voiden-shims',
     enforce: 'pre',
     resolveId(id) {
-      if (id in STATIC_SHIMS) return `\0shim:${id}`
+      // syntheticNamedExports:'default' lets Rollup resolve ANY named import from the shim
+      // by falling back to the default export's properties — no need to enumerate every icon/export.
+      if (id in STATIC_SHIMS) return { id: `\0shim:${id}`, syntheticNamedExports: 'default' }
       if (id in CORE_EXPORTS) return `\0shim:${id}`
       return null
     },
