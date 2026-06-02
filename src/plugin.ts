@@ -294,7 +294,7 @@ export default function createSocketPlugin(context: PluginContext) {
           };
 
           // Resolve relative proto file path to absolute so the electron process can find the file
-          if (builtRequest.grpc.protoFilePath && !builtRequest.grpc.protoFilePath.startsWith('/')) {
+          if (builtRequest.grpc.protoFilePath && !builtRequest.grpc.protoFilePath.startsWith('/') && !/^[A-Za-z]:[/\\]/.test(builtRequest.grpc.protoFilePath)) {
             try {
               const projectDir = await (window as any).electron?.directories?.getActive();
               if (projectDir) {

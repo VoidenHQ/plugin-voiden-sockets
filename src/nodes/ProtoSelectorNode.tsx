@@ -24,7 +24,7 @@ type GrpcCallType = 'unary' | 'server_streaming' | 'client_streaming' | 'bidirec
  */
 async function resolveProtoPath(filePath: string | null): Promise<string | null> {
     if (!filePath) return null;
-    if (filePath.startsWith('/')) return filePath;
+    if (filePath.startsWith('/') || /^[A-Za-z]:[/\\]/.test(filePath)) return filePath;
     try {
         const projectDir = await (window as any).electron?.directories?.getActive();
         if (!projectDir) return filePath;

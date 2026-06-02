@@ -11,13 +11,14 @@
   },
   {
     "version": "v1.1.2",
-    "date": "27/05/2026",
+    "date": "02/06/2026",
     "title": "Theme & Error Surfacing Fixes",
     "changes": {
       "Fixed": [
         "Border colors in gRPC and WebSocket UI components are now theme-aware",
         "gRPC connection failures now surface the actual error message in the response panel",
-        "Removed catch-all shim block"
+        "Removed catch-all shim block",
+        "Windows absolute proto file paths (C:\\...) no longer get prepended with the project directory, resolving triple-path corruption on Windows"
       ]
     }
   },
