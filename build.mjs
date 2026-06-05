@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 import { build } from 'vite'
-import { readFileSync, existsSync } from 'fs'
+import { readFileSync, existsSync, copyFileSync } from 'fs'
 import { resolve } from 'path'
 
 const manifest = JSON.parse(readFileSync('./manifest.json', 'utf8'))
@@ -108,3 +108,7 @@ await build({
   },
   logLevel: 'info'
 })
+
+// Copy release assets into dist/ so the package is self-contained
+if (existsSync('./manifest.json'))  copyFileSync('./manifest.json',  './dist/manifest.json')
+if (existsSync('./changelog.json')) copyFileSync('./changelog.json', './dist/changelog.json')
