@@ -106,6 +106,24 @@ export default function createSocketPlugin(context: PluginContext) {
       context.registerLinkableNodeTypes(['socket-request', 'smethod', 'surl', 'proto', 'messages-node', "grpc-messages-node",
 
       ]);
+
+      (context as any).registerBlockOutlineMeta({
+        "socket-request": {
+          label: "Request",
+          icon: "Send",
+          getPreview: (_attrs: Record<string, any>, textContent: string) => {
+            if (!textContent) return undefined;
+            const trimmed = textContent.trim();
+            return trimmed.length > 50 ? trimmed.slice(0, 50) + "…" : trimmed || undefined;
+          },
+        },
+        smethod: { label: "Method", icon: "Zap" },
+        surl: { label: "URL", icon: "Globe" },
+        proto: { label: "Proto File", icon: "FileCode" },
+        "messages-node": { label: "Messages", icon: "MessageSquare" },
+        "grpc-messages-node": { label: "gRPC Messages", icon: "Server" },
+      });
+
       context.addVoidenSlashGroup({
         name: 'sockets',
         title: 'Sockets',
