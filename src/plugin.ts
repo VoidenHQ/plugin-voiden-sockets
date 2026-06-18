@@ -117,9 +117,9 @@ export default function createSocketPlugin(context: PluginContext) {
             return trimmed.length > 50 ? trimmed.slice(0, 50) + "…" : trimmed || undefined;
           },
         },
-        smethod: { label: "Method", icon: "Zap" },
-        surl: { label: "URL", icon: "Globe" },
-        proto: { label: "Proto File", icon: "FileCode" },
+        smethod: { label: "Method", icon: "Zap", skip: true },
+        surl: { label: "URL", icon: "Globe", skip: true },
+        proto: { label: "Proto File", icon: "FileCode", skip: true },
         "messages-node": { label: "Messages", icon: "MessageSquare" },
         "grpc-messages-node": { label: "gRPC Messages", icon: "Server" },
       });
