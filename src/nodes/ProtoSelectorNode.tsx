@@ -166,7 +166,8 @@ export const createProtoFileNode = (NodeViewWrapper: any) => {
                 const { packageName, services } = parseProtoFile(content);
 
                 // Relativize the path against the project root so the path is portable
-                // across machines and can be committed to git.
+                // across machines and can be committed to git. Files outside the
+                // project keep their absolute path.
                 let storedPath = absolutePath;
                 try {
                     const projectDir = await (window as any).electron?.directories?.getActive();

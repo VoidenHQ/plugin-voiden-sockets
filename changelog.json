@@ -1,5 +1,19 @@
 [
   {
+    "version": "v1.1.3",
+    "date": "23/06/2026",
+    "title": "Block Overview Panel Integration & Proto Path Fixes",
+    "changes": {
+      "Added": [
+        "Block outline metadata for socket-request, messages-node, and grpc-messages-node so they display at their correct document positions with labels and previews in the Block Overview Panel"
+      ],
+      "Fixed": [
+        "Resolving a project-relative proto file path against the project root no longer doubles the path into a nonsensical, unresolvable location",
+        "Selecting a proto file that doesn't exist on the current machine (e.g. an absolute path from another system) now shows a clear error explaining the file is machine-specific, instead of a generic \"not found\" error"
+      ]
+    }
+  },
+  {
     "version": "v1.1.4",
     "date": "29/05/2026",
     "title": "Build Fix",
