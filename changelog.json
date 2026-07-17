@@ -1,5 +1,18 @@
 [
   {
+    "version": "v1.1.5",
+    "date": "16/07/2026",
+    "title": "Block Documentation Link",
+    "changes": {
+      "Added": [
+        "An \"Open Documentation\" item now appears in the right-click block menu for Request, Method, URL, Proto File, Messages, and gRPC Messages blocks, opening the Voiden Blocks docs in your system browser"
+      ],
+      "Fixed": [
+        "A gRPC Request block's documentation link now opens the gRPC docs page instead of the generic WebSocket one"
+      ]
+    }
+  },
+  {
     "version": "v1.1.4",
     "date": "03/07/2026",
     "title": "Skill Documentation Expansion",

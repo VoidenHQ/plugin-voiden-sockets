@@ -107,21 +107,36 @@ export default function createSocketPlugin(context: PluginContext) {
 
       ]);
 
+      // WebSocket-generic blocks vs. gRPC-specific blocks get separate docs pages.
+      const WS_DOCS_URL = "https://docs.voiden.md/docs/core-features-section/voiden-blocks/web-socket";
+      const GRPC_DOCS_URL = "https://docs.voiden.md/docs/core-features-section/voiden-blocks/grpc";
       (context as any).registerBlockOutlineMeta({
         "socket-request": {
           label: "Request",
           icon: "Send",
+          // socket-request is a shared container for both plain WebSocket and
+          // gRPC requests (content: "smethod surl proto?") — it carries no
+          // attrs of its own to tell them apart, so inspect its children:
+          // a "proto" child, or an smethod with a grpc(s) method, means gRPC.
+          docsUrl: (_attrs: Record<string, any>, node?: any) => {
+            let isGrpc = false;
+            node?.forEach?.((child: any) => {
+              if (child.type?.name === "proto") isGrpc = true;
+              if (child.type?.name === "smethod" && /^grpcs?$/i.test(child.attrs?.method || "")) isGrpc = true;
+            });
+            return isGrpc ? GRPC_DOCS_URL : WS_DOCS_URL;
+          },
           getPreview: (_attrs: Record<string, any>, textContent: string) => {
             if (!textContent) return undefined;
             const trimmed = textContent.trim();
             return trimmed.length > 50 ? trimmed.slice(0, 50) + "…" : trimmed || undefined;
           },
         },
-        smethod: { label: "Method", icon: "Zap", skip: true },
-        surl: { label: "URL", icon: "Globe", skip: true },
-        proto: { label: "Proto File", icon: "FileCode", skip: true },
-        "messages-node": { label: "Messages", icon: "MessageSquare" },
-        "grpc-messages-node": { label: "gRPC Messages", icon: "Server" },
+        smethod: { label: "Method", icon: "Zap", skip: true, docsUrl: WS_DOCS_URL },
+        surl: { label: "URL", icon: "Globe", skip: true, docsUrl: WS_DOCS_URL },
+        proto: { label: "Proto File", icon: "FileCode", skip: true, docsUrl: GRPC_DOCS_URL },
+        "messages-node": { label: "Messages", icon: "MessageSquare", docsUrl: WS_DOCS_URL },
+        "grpc-messages-node": { label: "gRPC Messages", icon: "Server", docsUrl: GRPC_DOCS_URL },
       });
 
       context.addVoidenSlashGroup({
