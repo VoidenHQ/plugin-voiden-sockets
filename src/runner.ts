@@ -86,9 +86,22 @@ const createSocketsRunner: RunnerFactory = (context: RunnerContext) => {
   return {
     onload() {
       // ── Request builder ───────────────────────────────────────────────────
+      // onBuildRequest handlers run in plugin-load order (registry order — not
+      // guaranteed before/after voiden-advanced-auth's own handler), each
+      // receiving the previous handler's output as `request`. buildRequest()
+      // always returns a fresh headers array built only from headers-table, so
+      // we append it onto whatever's already in `request` instead of replacing
+      // it — otherwise an auth-block header contributed by voiden-advanced-auth's
+      // handler running first would be silently dropped (these headers also
+      // become the gRPC call's metadata downstream, so this covers both).
       context.onBuildRequest((request, blocks) => {
         const built = buildRequest(blocks)
-        return built ?? request
+        if (!built) return request
+        const priorHeaders = Array.isArray((request as any)?.headers) ? (request as any).headers : []
+        return {
+          ...built,
+          headers: [...priorHeaders, ...(built as any).headers],
+        }
       })
 
       // ── Handoff handler: connect WS/gRPC after executeSecureRequest handoff ─

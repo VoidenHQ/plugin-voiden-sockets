@@ -1,5 +1,15 @@
 [
   {
+    "version": "v1.1.6",
+    "date": "28/07/2026",
+    "title": "Headless Request-Build Merge Fix",
+    "changes": {
+      "Fixed": [
+        "Headless (CLI / voiden-mcp) WebSocket and gRPC request building no longer discards headers contributed by another plugin's request-build handler (e.g. an auth-block header from voiden-advanced-auth, which also becomes the gRPC call's metadata) — the builder previously replaced the entire header set from scratch on every run, silently dropping anything set by a handler that ran earlier in the chain"
+      ]
+    }
+  },
+  {
     "version": "v1.1.5",
     "date": "16/07/2026",
     "title": "Block Documentation Link",
