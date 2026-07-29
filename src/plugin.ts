@@ -9,6 +9,7 @@ import { createMessagesNode } from './nodes/MessagesNode';
 import { createGrpcMessagesNode } from './nodes/gRPCMessageNode';
 import manifest from "./manifest.json";
 import { socketHistoryAdapter } from './historyAdapter';
+import { SocketRequestHelp } from './help/index';
 
 // ─── gRPC config type ────────────────────────────────────────────────────────
 
@@ -88,11 +89,11 @@ export default function createSocketPlugin(context: PluginContext) {
       const { createProtoFileNode } = await import('./nodes/ProtoSelectorNode');
       const { createSocketMethodNode } = await import('./nodes/MethodNode');
       const { SocketUrlNode } = await import('./nodes/UrlNode');
-      const { NodeViewWrapper } = context.ui.components;
+      const { NodeViewWrapper, BlockHelpTooltip } = context.ui.components;
       const { useSendRestRequest } = context.ui.hooks;
 
       const ProtoFileNode = createProtoFileNode(NodeViewWrapper);
-      const SocketMethodNode = createSocketMethodNode(useSendRestRequest);
+      const SocketMethodNode = createSocketMethodNode(useSendRestRequest, BlockHelpTooltip, SocketRequestHelp);
 
 
       const MessagesNode = createMessagesNode(NodeViewWrapper, context);
@@ -137,6 +138,15 @@ export default function createSocketPlugin(context: PluginContext) {
         proto: { label: "Proto File", icon: "FileCode", skip: true, docsUrl: GRPC_DOCS_URL },
         "messages-node": { label: "Messages", icon: "MessageSquare", docsUrl: WS_DOCS_URL },
         "grpc-messages-node": { label: "gRPC Messages", icon: "Server", docsUrl: GRPC_DOCS_URL },
+      });
+
+      // Inline block "?" help tooltip — socket-request has no RequestBlockHeader
+      // (custom StreamHeader/MethodNode UI instead), so the tooltip is wired
+      // directly via BlockHelpTooltip in MethodNode.tsx rather than a blockType
+      // lookup. Still registered here too, for consistency/future reuse
+      // (e.g. Command Palette or outline panel integration).
+      (context as any).registerBlockHelp?.({
+        "socket-request": SocketRequestHelp,
       });
 
       context.addVoidenSlashGroup({

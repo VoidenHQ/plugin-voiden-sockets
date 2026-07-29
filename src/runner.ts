@@ -85,6 +85,17 @@ export function buildRequest(blocks: Block[]): RestApiRequestState | null {
 const createSocketsRunner: RunnerFactory = (context: RunnerContext) => {
   return {
     onload() {
+      // ── Request container registration ────────────────────────────────────
+      // Tells voiden-runner's MCP tools (list_requests/write_result) how to
+      // find "the request" block and its URL/method (protocol tag) for
+      // WebSocket/gRPC. Cast to any: registerRequestContainer is a host
+      // capability not yet in the published @voiden/sdk RunnerContext type.
+      ;(context as any).registerRequestContainer?.({
+        type: 'socket-request',
+        urlType: 'surl',
+        methodType: 'smethod',
+      })
+
       // ── Request builder ───────────────────────────────────────────────────
       // onBuildRequest handlers run in plugin-load order (registry order — not
       // guaranteed before/after voiden-advanced-auth's own handler), each

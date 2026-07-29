@@ -27,7 +27,7 @@ const preventEnter = (editor: Editor) => {
 };
 
 // Factory function to create MethodNode with context hooks for sockets
-export const createSocketMethodNode = (useSendRestRequest: any) => {
+export const createSocketMethodNode = (useSendRestRequest: any, BlockHelpTooltip?: any, HelpContent?: any) => {
   const MethodNodeView = (props: NodeViewProps) => {
     const { node, editor, getPos } = props;
     const { refetch } = useSendRestRequest(editor);
@@ -121,6 +121,9 @@ export const createSocketMethodNode = (useSendRestRequest: any) => {
             >
               <Play size={14} />
             </div>
+            {BlockHelpTooltip && HelpContent && (
+              <BlockHelpTooltip helpContent={<HelpContent />} />
+            )}
           </div>
         </div>
       </NodeViewWrapper>
