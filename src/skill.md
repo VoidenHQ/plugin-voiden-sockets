@@ -2,6 +2,8 @@
 
 Provides WebSocket and gRPC block types via `socket-request`, `surl`, `smethod`, `proto`, `messages-node`, and `grpc-messages-node`.
 
+> **Not singleton:** `socket-request` is explicitly allowed multiple times per file — one WebSocket/gRPC request per `request-separator` section, exactly like REST `request` blocks. A second `socket-request` (in its own section) is intended, not a duplicate to remove.
+
 ### socket-request — Socket/gRPC Request Container
 
 Top-level container. For **WebSocket** it holds `smethod` + `surl` + `messages-node`. For **gRPC** it holds `smethod` + `surl` + `proto` + `grpc-messages-node`.

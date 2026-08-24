@@ -1,5 +1,15 @@
 [
   {
+    "version": "v1.1.7",
+    "date": "24/08/2026",
+    "title": "Docs: Skill Now Clarifies socket-request Is Not Singleton",
+    "changes": {
+      "Fixed": [
+        "The bundled skill.md now explicitly documents that socket-request blocks are NOT singleton — multiple WebSocket/gRPC requests per file, one per request-separator section, is intentional and matches the existing multi-request-per-file support. Previously unstated, which risked an AI agent incorrectly \"deduplicating\" a valid multi-socket file."
+      ]
+    }
+  },
+  {
     "version": "v1.1.6",
     "date": "29/07/2026",
     "title": "Headless Request-Build Merge Fix & Inline Block Help",
