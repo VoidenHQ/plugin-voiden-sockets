@@ -5,7 +5,12 @@
     "title": "Docs: Skill Now Clarifies socket-request Is Not Singleton",
     "changes": {
       "Fixed": [
-        "The bundled skill.md now explicitly documents that socket-request blocks are NOT singleton — multiple WebSocket/gRPC requests per file, one per request-separator section, is intentional and matches the existing multi-request-per-file support. Previously unstated, which risked an AI agent incorrectly \"deduplicating\" a valid multi-socket file."
+        "The bundled skill.md now explicitly documents that socket-request blocks are NOT singleton — multiple WebSocket/gRPC requests per file, one per request-separator section, is intentional and matches the existing multi-request-per-file support. Previously unstated, which risked an AI agent incorrectly \"deduplicating\" a valid multi-socket file.",
+        "Fixed a fundamentally broken grpc-messages-node example in skill.md: it showed a content: [{ type: message, ... }] child array, but grpc-messages-node is an atom node (cannot have any child content at all) and no message node type is registered anywhere in this plugin — following the documented example threw RangeError: Unknown node type: message and broke the whole document. grpc-messages-node is a recorded result the app generates after a real run (same convention as a REST response block); skill.md now says so explicitly and removes the broken content example entirely.",
+        "Fixed proto.callType and grpc-messages-node.callType documented with hyphenated values (server-streaming, client-streaming, bidirectional) — the real values are underscored (server_streaming, client_streaming, bidirectional_streaming).",
+        "Documented that proto.filePath uses the OPPOSITE leading-slash convention from linkedFile/fileLink elsewhere in .void files — a leading / means a literal absolute filesystem path here, not project-root-relative — which was silently causing proto files to fail to load with no error.",
+        "Documented that surl needs its scheme prefix (wss://, grpc://, etc.) for headless execution specifically — run_request/voiden-runner determine protocol purely from that prefix, ignoring smethod entirely, so a bare host:port silently runs as the wrong protocol.",
+        "Documented that headless gRPC execution only checks channel connectivity and does not invoke the selected method or send a message — there is currently no .void field that carries a custom request body through to a headless gRPC call."
       ]
     }
   },

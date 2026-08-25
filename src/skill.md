@@ -34,6 +34,8 @@ Top-level container. For **WebSocket** it holds `smethod` + `surl` + `messages-n
   content: "wss://echo.example.com/ws"    # wss:// | ws:// | grpcs:// | grpc://
 ```
 
+> **The scheme prefix is required, not decorative.** Headless execution (`run_request`, `voiden-runner`) determines the protocol purely by checking `surl`'s content for a `wss://`/`ws://`/`grpcs://`/`grpc://` prefix — it does not read `smethod` at all. A bare host:port like `"grpcb.in:9001"` silently falls back to `ws`, which for a gRPC target is wrong and will not connect as a gRPC channel. Always include the scheme, even though the live app UI additionally shows `smethod` for display.
+
 ### proto — Protobuf Definition (gRPC only)
 
 ```yaml
@@ -41,15 +43,17 @@ Top-level container. For **WebSocket** it holds `smethod` + `surl` + `messages-n
   attrs:
     uid: "uid"
     fileName: "user.proto"
-    filePath: "/path/to/user.proto"
+    filePath: "grpc/user.proto"
     packageName: "com.example.user"
-    services: []                  # parsed service/method tree — managed by UI
+    services: []                  # parsed service/method tree — managed by UI, see below
     selectedService: "UserService"
     selectedMethod: "GetUser"
-    callType: "unary"             # unary | server-streaming | client-streaming | bidirectional
+    callType: "unary"             # unary | server_streaming | client_streaming | bidirectional_streaming (underscored — not hyphenated)
 ```
 
-`services` is a parsed proto service tree managed by the Voiden UI after selecting a proto file — do not hand-craft it. Only set `fileName`, `filePath`, `selectedService`, `selectedMethod`, and `callType`.
+> **`filePath` uses a DIFFERENT convention than `linkedFile`/`fileLink` elsewhere in `.void` files — do not carry that convention over here.** For `linkedFile`/`fileLink`, a leading `/` means "relative to the project root" (see the base voiden skill). For `proto.filePath`, a leading `/` (or a Windows drive letter like `C:\`) means the opposite — a literal, absolute filesystem path, resolved exactly as written, NOT joined against the project root. A path with no leading `/` is the one that gets joined against the active project directory. So to reference `grpc/user.proto` inside the project, write `filePath: "grpc/user.proto"` (no leading slash) — writing `filePath: "/grpc/user.proto"` will instead try to read literally from the filesystem root and silently fail to find anything, leaving `services` empty.
+
+`services` is a parsed proto service tree — **the app populates it automatically** the first time it successfully reads the file at `filePath` (whenever `fileName` is set and `services` is still empty), so leave `services: []` when hand-authoring; you don't need to (and can't feasibly) hand-write the parsed tree yourself. Only set `fileName`, `filePath`, `selectedService`, `selectedMethod`, and `callType` — but be aware `selectedService`/`selectedMethod` only mean anything once the file at `filePath` is actually readable and gets parsed; if the path is wrong, they silently point at nothing.
 
 ### messages-node — WebSocket Messages Viewer
 
@@ -67,34 +71,41 @@ attrs:
 ---
 ```
 
-### grpc-messages-node — gRPC Messages
+### grpc-messages-node — gRPC Call Record (never hand-author this)
 
-Handles all gRPC call types with request/response messages:
+`grpc-messages-node` is an **atom node — it cannot have child content at all**, and there is no `message` node type registered anywhere in this plugin. Writing `content: [{ type: message, ... }]` (as older versions of this doc incorrectly showed) throws `RangeError: Unknown node type: message` and breaks the whole document.
+
+This node is a **recorded result**, the same convention as a REST `response` block: the app generates it automatically — with real attrs — after you actually run a call from the live UI. Never author one by hand; if you're building a gRPC request from scratch, stop at the `socket-request` block (`smethod` + `surl` + `proto`) and leave this node out entirely.
 
 ```yaml
 ---
 type: grpc-messages-node
 attrs:
   grpcId: "grpc-123"
-  callType: unary               # unary | server-streaming | client-streaming | bidirectional
+  callType: unary                # unary | server_streaming | client_streaming | bidirectional_streaming (underscored — not hyphenated)
   service: UserService
   method: GetUser
   target: "grpcs://api.example.com:443"
-content:
-  - type: message
-    attrs:
-      messageType: request
-      value: '{"id": "{{USER_ID}}"}'
+  url: "grpcs://api.example.com:443"
+  package: "com.example.user"
+  headers: "[]"                  # JSON-stringified array
+  protoFilePath: "user.proto"
+  sourceFilePath: null
+  protoServices: null            # JSON-stringified parsed proto tree, set by the app
 ---
 ```
 
-**Call types:**
+**Call types** (note the underscores):
 | `callType` | Description |
 |------------|-------------|
 | `unary` | Single request → single response |
-| `server-streaming` | Single request → stream of responses |
-| `client-streaming` | Stream of requests → single response |
-| `bidirectional` | Stream of requests → stream of responses |
+| `server_streaming` | Single request → stream of responses |
+| `client_streaming` | Stream of requests → single response |
+| `bidirectional_streaming` | Stream of requests → stream of responses |
+
+### Headless execution is connectivity-only, not a real call
+
+Running a `socket-request` gRPC block headlessly (`run_request`, `voiden-runner`) only verifies the channel reaches `READY` state — it does **not** invoke the selected method or send any message, and there is currently no `.void` field anywhere that carries a custom request body through to a headless gRPC call. To actually invoke a method with a real request body and see a real response, open the file in the app and send it interactively — that's what populates a `grpc-messages-node` with genuine data. Don't try to pre-author the "request" for a headless run; there's nowhere for it to go yet.
 
 ### Complete WebSocket Example
 
@@ -141,6 +152,8 @@ attrs:
 
 ### Complete gRPC Example
 
+A `grpc-messages-node` is deliberately **not** included below — see "gRPC Call Record" above: it's a recorded result the app generates after a real run, not something to author here. This is the complete, correct shape for authoring a gRPC request from scratch; running it (`run_request`) verifies the channel connects, and sending it interactively from the app UI is what actually invokes `GetUser` and records the response.
+
 ```void
 ---
 type: socket-request
@@ -161,28 +174,11 @@ content:
     attrs:
       uid: "p1rot23-e5f6-7890-abcd-ef1234567890"
       fileName: "user.proto"
-      filePath: "/path/to/user.proto"
+      filePath: "grpc/user.proto"
       packageName: ""
       services: []
       selectedService: "UserService"
       selectedMethod: "GetUser"
       callType: "unary"
----
-```
-
-```void
----
-type: grpc-messages-node
-attrs:
-  grpcId: "grpc-abc123"
-  callType: unary
-  service: UserService
-  method: GetUser
-  target: "grpcs://{{GRPC_HOST}}:443"
-content:
-  - type: message
-    attrs:
-      messageType: request
-      value: '{"id": "{{USER_ID}}"}'
 ---
 ```
