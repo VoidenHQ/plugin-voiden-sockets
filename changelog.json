@@ -1,5 +1,15 @@
 [
   {
+    "version": "v1.1.8",
+    "date": "01/10/2026",
+    "title": "WebSocket Block Label Fix",
+    "changes": {
+      "Fixed": [
+        "WebSocket and gRPC blocks show the WSS/gRPC method label once instead of a duplicate editable line."
+      ]
+    }
+  },
+  {
     "version": "v1.1.7",
     "date": "24/08/2026",
     "title": "Docs: Skill Now Clarifies socket-request Is Not Singleton",

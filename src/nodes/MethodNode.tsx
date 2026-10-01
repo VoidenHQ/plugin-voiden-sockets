@@ -1,5 +1,5 @@
 import { Editor, Node, NodeViewProps, mergeAttributes } from "@tiptap/core";
-import { NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
+import { NodeViewContent, NodeViewWrapper, ReactNodeViewRenderer } from "@tiptap/react";
 import { Play, Copy, Check } from "lucide-react";
 import { useState } from "react";
 import { generateGrpcurlFromJson } from '../lib/grpcurlGenerator';
@@ -36,8 +36,13 @@ export const createSocketMethodNode = (useSendRestRequest: any, BlockHelpTooltip
     const method = node.attrs.method;
     const isGrpc = /^grpcs?$/i.test(method);
 
+    // The label is rendered from attrs.method; the node's inline text is kept
+    // only for serialization. Tiptap 3 appends contentDOM to the view when no
+    // NodeViewContent is rendered, so mount a hidden one to keep it off-screen.
+    const hiddenContent = <NodeViewContent className="hidden" />;
+
     if (!node.attrs.visible) {
-      return <NodeViewWrapper></NodeViewWrapper>;
+      return <NodeViewWrapper>{hiddenContent}</NodeViewWrapper>;
     }
 
     const handleCopy = async () => {
@@ -126,6 +131,7 @@ export const createSocketMethodNode = (useSendRestRequest: any, BlockHelpTooltip
             )}
           </div>
         </div>
+        {hiddenContent}
       </NodeViewWrapper>
     );
   };
