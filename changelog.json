@@ -1,5 +1,20 @@
 [
   {
+    "version": "v1.1.9",
+    "date": "12/10/2026",
+    "title": "AI-Authored gRPC & WebSocket Fixes",
+    "changes": {
+      "Fixed": [
+        "WebSocket messages no longer appear inside the .void file when it contains a messages block with no connection.",
+        "Project-relative proto paths now load from the project open in the window.",
+        "Proto paths written with a leading slash or \"./\" now load from the project root.",
+        "A gRPC block whose proto file is missing now says so and offers a one-click \"Choose proto file\".",
+        "Headless runs now report the gRPC service, method and package from the proto block.",
+        "The bundled skill no longer tells AI agents to add a messages-node, and requires the .proto file to exist before referencing it."
+      ]
+    }
+  },
+  {
     "version": "v1.1.8",
     "date": "01/10/2026",
     "title": "WebSocket Block Label Fix",

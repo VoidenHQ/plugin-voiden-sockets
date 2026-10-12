@@ -1,7 +1,8 @@
 import { mergeAttributes, Node } from "@tiptap/core";
 import { ReactNodeViewRenderer } from "@tiptap/react";
-import { useCallback, useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { ExternalLink } from "lucide-react";
+import { getProjectDir } from "../lib/projectDir";
 
 // Type definitions
 interface ProtoMethod {
@@ -18,21 +19,56 @@ interface ProtoService {
 
 type GrpcCallType = 'unary' | 'server_streaming' | 'client_streaming' | 'bidirectional_streaming';
 
+const isAbsoluteProtoPath = (filePath: string) => filePath.startsWith('/') || /^[A-Za-z]:[/\\]/.test(filePath);
+
+const joinProjectPath = (projectDir: string, relativePath: string) => {
+    const sep = projectDir.endsWith('/') ? '' : '/';
+    return `${projectDir}${sep}${relativePath}`;
+};
+
 /**
- * Resolves a proto filePath (relative or absolute) to an absolute path.
- * Relative paths are joined against the active project directory.
+ * Reads the proto file a filePath attr points at.
+ * Relative paths are joined against the active project directory. A path with
+ * a leading slash is tried as written first (a file outside the project), then
+ * as project-relative — hand/AI-authored .void files often write "/grpc/a.proto"
+ * meaning "from the project root", the convention linkedFile uses.
+ * Returns the content plus the path to store: project-relative when the file
+ * is inside the project, absolute otherwise.
  */
-async function resolveProtoPath(filePath: string | null): Promise<string | null> {
+async function readProtoFile(filePath: string | null): Promise<{ content: string; storedPath: string } | null> {
     if (!filePath) return null;
-    if (filePath.startsWith('/') || /^[A-Za-z]:[/\\]/.test(filePath)) return filePath;
+    const read = async (p: string): Promise<string | null> => {
+        try {
+            return (await (window as any).electron?.files?.read(p)) || null;
+        } catch {
+            return null;
+        }
+    };
+
+    let projectDir: string | null = null;
     try {
-        const projectDir = await (window as any).electron?.directories?.getActive();
-        if (!projectDir) return filePath;
-        const sep = projectDir.endsWith('/') ? '' : '/';
-        return `${projectDir}${sep}${filePath}`;
-    } catch {
-        return filePath;
+        projectDir = (await getProjectDir()) || null;
+    } catch { /* no active project */ }
+
+    const candidates: string[] = [];
+    if (isAbsoluteProtoPath(filePath)) candidates.push(filePath);
+    if (projectDir && !/^[A-Za-z]:[/\\]/.test(filePath)) {
+        const relative = filePath.replace(/^(\.?[/\\])+/, '');
+        if (relative) candidates.push(joinProjectPath(projectDir, relative));
     }
+    if (candidates.length === 0) candidates.push(filePath);
+
+    for (const candidate of candidates) {
+        const content = await read(candidate);
+        if (!content) continue;
+        let storedPath = candidate;
+        if (projectDir) {
+            const withSep = projectDir.endsWith('/') ? projectDir : projectDir + '/';
+            if (candidate.startsWith(withSep)) storedPath = candidate.slice(withSep.length);
+        }
+        return { content, storedPath };
+    }
+    return null;
 }
 
 /**
@@ -41,6 +77,8 @@ async function resolveProtoPath(filePath: string | null): Promise<string | null>
  */
 export const createProtoFileNode = (NodeViewWrapper: any) => {
     const ProtoFileComponent = ({ node, updateAttributes }: any) => {
+        // True when fileName is set but the file at filePath could not be read
+        const [loadFailed, setLoadFailed] = useState(false);
 
         const determineCallType = (methodSignature: string): GrpcCallType => {
             const hasStreamRequest = /stream\s+\w+/.test(methodSignature.split('returns')[0]);
@@ -93,24 +131,22 @@ export const createProtoFileNode = (NodeViewWrapper: any) => {
 
         // Auto-load proto services from filePath when services are missing
         useEffect(() => {
-            if (!node.attrs.fileName || node.attrs.services.length > 0) return;
+            if (!node.attrs.fileName || (node.attrs.services?.length ?? 0) > 0) {
+                setLoadFailed(false);
+                return;
+            }
+            let cancelled = false;
             (async () => {
                 try {
-                    const resolvedPath = await resolveProtoPath(node.attrs.filePath);
-                    if (!resolvedPath) return;
-                    const content = await (window as any).electron?.files?.read(resolvedPath);
-                    if (!content) return;
-                    const { packageName, services } = parseProtoFile(content);
-
-                    // Relativize filePath if the proto is inside the active project directory
-                    let storedPath = node.attrs.filePath as string | null;
-                    try {
-                        const projectDir = await (window as any).electron?.directories?.getActive();
-                        if (projectDir && storedPath && storedPath.startsWith(projectDir)) {
-                            const withSep = projectDir.endsWith('/') ? projectDir : projectDir + '/';
-                            storedPath = storedPath.slice(withSep.length);
-                        }
-                    } catch { /* keep as-is */ }
+                    const loaded = await readProtoFile(node.attrs.filePath || node.attrs.fileName);
+                    if (cancelled) return;
+                    if (!loaded) {
+                        setLoadFailed(true);
+                        return;
+                    }
+                    setLoadFailed(false);
+                    const { packageName, services } = parseProtoFile(loaded.content);
+                    const storedPath = loaded.storedPath;
 
                     // Resolve selectedService / selectedMethod / callType from loaded data
                     let selectedService = node.attrs.selectedService as string | null;
@@ -145,7 +181,8 @@ export const createProtoFileNode = (NodeViewWrapper: any) => {
                     console.error('[ProtoSelectorNode] Auto-load failed:', err);
                 }
             })();
-        }, [node.attrs.fileName, node.attrs.services.length]);
+            return () => { cancelled = true; };
+        }, [node.attrs.fileName, node.attrs.filePath, node.attrs.services?.length]);
 
         const handleFileSelect = useCallback(async () => {
             // Use Electron's native dialog to get the full absolute path — the HTML
@@ -170,7 +207,7 @@ export const createProtoFileNode = (NodeViewWrapper: any) => {
                 // project keep their absolute path.
                 let storedPath = absolutePath;
                 try {
-                    const projectDir = await (window as any).electron?.directories?.getActive();
+                    const projectDir = await getProjectDir();
                     if (projectDir) {
                         const withSep = projectDir.endsWith('/') ? projectDir : projectDir + '/';
                         if (absolutePath.startsWith(withSep)) {
@@ -260,7 +297,7 @@ export const createProtoFileNode = (NodeViewWrapper: any) => {
                                     {node.attrs.packageName && (
                                         <span className="text-xs text-accent ml-2 font-mono">({node.attrs.packageName})</span>
                                     )}
-                                    {node.attrs.filePath?.startsWith('/') && (
+                                    {!loadFailed && node.attrs.filePath && isAbsoluteProtoPath(node.attrs.filePath) && (
                                         <span
                                             title="Proto file is outside the project directory"
                                             className="flex items-center gap-1 text-xs text-yellow-500 cursor-default"
@@ -341,8 +378,19 @@ export const createProtoFileNode = (NodeViewWrapper: any) => {
                                     )}
                                 </div>
                             ) : (
-                                <div className="text-xs text-red-400 bg-red-950/20 border border-red-900/50 rounded px-2 py-1">
-                                    ⚠️ No services found in proto file
+                                <div className="flex items-center justify-between gap-2 text-xs text-red-400 bg-red-950/20 border border-red-900/50 rounded px-2 py-1">
+                                    <span>
+                                        {loadFailed
+                                            ? `⚠️ Proto file not found: ${node.attrs.filePath || node.attrs.fileName}`
+                                            : '⚠️ No services found in proto file'}
+                                    </span>
+                                    <button
+                                        type="button"
+                                        className="shrink-0 text-accent hover:text-accent/80 underline decoration-accent/50 hover:decoration-accent transition-colors cursor-pointer"
+                                        onClick={handleFileSelect as any}
+                                    >
+                                        Choose proto file
+                                    </button>
                                 </div>
                             )}
                         </div>

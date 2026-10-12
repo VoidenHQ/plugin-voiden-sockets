@@ -1,3 +1,4 @@
+import { getProjectDir } from "./projectDir";
 /**
  * History save utility for WSS / gRPC sessions.
  * Called from MessagesNode and gRPCMessageNode when a session ends.
@@ -101,7 +102,7 @@ export async function saveSessionToHistory(
     let protoFilePathForHistory = opts.protoFilePath || undefined;
     if (protoFilePathForHistory) {
       try {
-        const projectDir = await (window as any).electron?.directories?.getActive();
+        const projectDir = await getProjectDir();
         if (projectDir && protoFilePathForHistory.startsWith(projectDir)) {
           const sep = projectDir.endsWith('/') ? '' : '/';
           protoFilePathForHistory = protoFilePathForHistory.slice(projectDir.length + sep.length);

@@ -58,10 +58,16 @@ export function buildRequest(blocks: Block[]): RestApiRequestState | null {
   const grpc: Record<string, any> = {}
   if (protoBlock?.attrs) {
     const a = protoBlock.attrs
-    if (a.protoFilePath) grpc.protoFilePath = a.protoFilePath
-    if (a.service)       grpc.service       = a.service
-    if (a.method)        grpc.method        = a.method   // 'method' matches executeSecureRequest
-    if (a.package)       grpc.package       = a.package
+    // Attr names as ProtoSelectorNode stores them (filePath / selectedService /
+    // selectedMethod / packageName); the short names are kept as a fallback.
+    const protoFilePath = a.filePath ?? a.protoFilePath
+    const service       = a.selectedService ?? a.service
+    const method        = a.selectedMethod ?? a.method
+    const pkg           = a.packageName ?? a.package
+    if (protoFilePath) grpc.protoFilePath = protoFilePath
+    if (service)       grpc.service       = service
+    if (method)        grpc.method        = method   // 'method' matches executeSecureRequest
+    if (pkg)           grpc.package       = pkg
     if (a.callType)      grpc.callType      = a.callType
   }
 

@@ -6,7 +6,7 @@ Provides WebSocket and gRPC block types via `socket-request`, `surl`, `smethod`,
 
 ### socket-request — Socket/gRPC Request Container
 
-Top-level container. For **WebSocket** it holds `smethod` + `surl` + `messages-node`. For **gRPC** it holds `smethod` + `surl` + `proto` + `grpc-messages-node`.
+Top-level container. For **WebSocket** it holds `smethod` + `surl`. For **gRPC** it holds `smethod` + `surl` + `proto`. That is the whole request — `messages-node` and `grpc-messages-node` are live viewers the app opens in the response panel when you connect, and are never written into the `.void` file (see below).
 
 ### smethod — Protocol Method Tag
 
@@ -51,25 +51,32 @@ Top-level container. For **WebSocket** it holds `smethod` + `surl` + `messages-n
     callType: "unary"             # unary | server_streaming | client_streaming | bidirectional_streaming (underscored — not hyphenated)
 ```
 
-> **`filePath` uses a DIFFERENT convention than `linkedFile`/`fileLink` elsewhere in `.void` files — do not carry that convention over here.** For `linkedFile`/`fileLink`, a leading `/` means "relative to the project root" (see the base voiden skill). For `proto.filePath`, a leading `/` (or a Windows drive letter like `C:\`) means the opposite — a literal, absolute filesystem path, resolved exactly as written, NOT joined against the project root. A path with no leading `/` is the one that gets joined against the active project directory. So to reference `grpc/user.proto` inside the project, write `filePath: "grpc/user.proto"` (no leading slash) — writing `filePath: "/grpc/user.proto"` will instead try to read literally from the filesystem root and silently fail to find anything, leaving `services` empty.
+> **`filePath` is relative to the project root, with NO leading slash** — `filePath: "grpc/user.proto"`, not `"/grpc/user.proto"` and not `"./grpc/user.proto"`. This differs from `linkedFile`/`fileLink` elsewhere in `.void` files, where a leading `/` means "relative to the project root": for `proto.filePath` a leading `/` (or a Windows drive letter like `C:\`) means a literal absolute filesystem path, used only for a proto that lives outside the project. It is also **not** relative to the `.void` file's own folder — a `.void` file in `requests/grpc/` pointing at `protos/user.proto` in the project root still writes `filePath: "protos/user.proto"`, never `"../../protos/user.proto"`. `fileName` is just the base name of the same file (`user.proto`).
 
-`services` is a parsed proto service tree — **the app populates it automatically** the first time it successfully reads the file at `filePath` (whenever `fileName` is set and `services` is still empty), so leave `services: []` when hand-authoring; you don't need to (and can't feasibly) hand-write the parsed tree yourself. Only set `fileName`, `filePath`, `selectedService`, `selectedMethod`, and `callType` — but be aware `selectedService`/`selectedMethod` only mean anything once the file at `filePath` is actually readable and gets parsed; if the path is wrong, they silently point at nothing.
+**The `.proto` file must exist on disk before you reference it.** Check for it first (list the project's `*.proto` files). Then:
 
-### messages-node — WebSocket Messages Viewer
-
-Standalone block that shows live WebSocket messages during and after a connection. Attrs are managed by the Voiden UI — do not set them manually.
+- **It exists** — set `fileName` and `filePath` to it, and take `selectedService` / `selectedMethod` / `callType` from the `service` and `rpc` definitions in that file — don't guess names. `packageName` is the file's `package` (or `""`).
+- **It doesn't exist and the user gave you the service definition** — create the `.proto` file in the project first, then reference it.
+- **It doesn't exist and you don't have the definition** — do **not** invent a `fileName`/`filePath`. Write the block with no proto attached (below) and tell the user to click "Import proto file" on it. A made-up path leaves the block showing "Proto file not found" and the request unable to run.
 
 ```yaml
----
-type: messages-node
-attrs:
-  uid: "uid"
-  wsId: null            # connection ID — set by UI during connection
-  url: null             # resolved URL — set by UI
-  headers: null         # resolved headers — set by UI
-  sourceFilePath: null  # source file path — set by UI
----
+- type: proto          # no proto attached yet — the app shows an "Import proto file" link
+  attrs:
+    uid: "uid"
+    fileName: null
+    filePath: null
+    packageName: null
+    services: []
+    selectedService: null
+    selectedMethod: null
+    callType: null
 ```
+
+`services` is a parsed proto service tree — **the app populates it automatically** when it reads the file at `filePath` (whenever `fileName` is set and `services` is still empty), so always leave `services: []` when hand-authoring; you don't need to (and can't feasibly) hand-write the parsed tree yourself.
+
+### messages-node — WebSocket Messages Viewer (never hand-author this)
+
+`messages-node` is the live message stream for one open WebSocket connection. The app creates it itself, in the **response panel**, when you connect — bound to that connection's `wsId`. It is not part of a request and must **not** be written into a `.void` file: a WebSocket request is complete with just the `socket-request` block (`smethod` + `surl`), plus optional headers/query/auth blocks. Adding a `messages-node` to the file puts a second viewer inside the document itself, so sent and received messages end up shown in the `.void` file as well as in the response panel. If you find one in a file you're editing with `wsId: null`, remove it.
 
 ### grpc-messages-node — gRPC Call Record (never hand-author this)
 
@@ -138,17 +145,7 @@ content:
 ---
 ```
 
-```void
----
-type: messages-node
-attrs:
-  uid: "ms1sg23-e5f6-7890-abcd-ef1234567890"
-  wsId: null
-  url: null
-  headers: null
-  sourceFilePath: null
----
-```
+No `messages-node` follows it — connecting from the app opens the message stream in the response panel.
 
 ### Complete gRPC Example
 

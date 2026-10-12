@@ -10,6 +10,7 @@ import { createGrpcMessagesNode } from './nodes/gRPCMessageNode';
 import manifest from "./manifest.json";
 import { socketHistoryAdapter } from './historyAdapter';
 import { SocketRequestHelp } from './help/index';
+import { getProjectDir } from "./lib/projectDir";
 
 // ─── gRPC config type ────────────────────────────────────────────────────────
 
@@ -339,7 +340,7 @@ export default function createSocketPlugin(context: PluginContext) {
           // Resolve relative proto file path to absolute so the electron process can find the file
           if (builtRequest.grpc.protoFilePath && !builtRequest.grpc.protoFilePath.startsWith('/') && !/^[A-Za-z]:[/\\]/.test(builtRequest.grpc.protoFilePath)) {
             try {
-              const projectDir = await (window as any).electron?.directories?.getActive();
+              const projectDir = await getProjectDir();
               if (projectDir) {
                 const sep = projectDir.endsWith('/') ? '' : '/';
                 builtRequest.grpc.protoFilePath = `${projectDir}${sep}${builtRequest.grpc.protoFilePath}`;

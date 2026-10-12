@@ -307,7 +307,7 @@ export const createMessagesNode = (NodeViewWrapper: any, context: PluginContext)
       }
 
       const offOpen = listen("ws-open", (_e: any, d: any) => {
-        if (!wsId || d.wsId === wsId) {
+        if (wsId && d.wsId === wsId) {
           setWsId(d.wsId);
           setConnected(true);
           setIsPaused(false);
@@ -321,21 +321,21 @@ export const createMessagesNode = (NodeViewWrapper: any, context: PluginContext)
       });
 
       const offMsg = listen("ws-message", (_e: any, d: any) => {
-        if (!wsId || d.wsId === wsId) {
+        if (wsId && d.wsId === wsId) {
           setWsId(d.wsId); setConnected(true); setHasError(false);
           setItems((prev) => [...prev, { kind: "recv", ts: Date.now(), wsId: d.wsId, data: d.data }]);
         }
       });
 
       const offSent = listen("ws-message-sent", (_e: any, d: any) => {
-        if (!wsId || d.wsId === wsId) {
+        if (wsId && d.wsId === wsId) {
           setWsId(d.wsId); setConnected(true); setHasError(false);
           setItems((prev) => [...prev, { kind: "sent", ts: Date.now(), wsId: d.wsId, data: d.data }]);
         }
       });
 
       const offErr = listen("ws-error", (_e: any, d: any) => {
-        if (!wsId || d.wsId === wsId) {
+        if (wsId && d.wsId === wsId) {
           if (d?.code === 'CLEANUP_WARNING') {
             setItems((prev) => [...prev, { kind: "system-error", ts: Date.now(), wsId: d?.wsId, message: d?.message || "Message history cleanup pending", code: d?.code }]);
           } else {
@@ -349,7 +349,7 @@ export const createMessagesNode = (NodeViewWrapper: any, context: PluginContext)
       });
 
       const offClose = listen("ws-close", (_e: any, d: any) => {
-        if (!wsId || d.wsId === wsId) {
+        if (wsId && d.wsId === wsId) {
           setConnected(false); setIsPaused(false);
           const closeItem: ChatItem = { kind: "system-close", ts: Date.now(), wsId: d.wsId, code: d.code, reason: d.reason, wasClean: d.wasClean };
           setItems((prev) => [...prev, closeItem]);
@@ -373,7 +373,7 @@ export const createMessagesNode = (NodeViewWrapper: any, context: PluginContext)
       });
 
       const offPause = listen("ws-pause", (_e: any, d: any) => {
-        if (!wsId || d.wsId === wsId) {
+        if (wsId && d.wsId === wsId) {
           setConnected(false); setIsPaused(true);
           setItems((prev) => [...prev, { kind: "system-pause", ts: Date.now(), wsId: d.wsId, code: d.code, reason: d.reason }]);
         }
