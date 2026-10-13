@@ -226,7 +226,7 @@ export function StreamExportMenu({
           e.stopPropagation();
           setOpen((v) => !v);
         }}
-        style={{ letterSpacing: '0.3px' }}
+        style={{ letterSpacing: '0.3px', whiteSpace: 'nowrap' }}
       >
         Export ↓
       </button>
@@ -296,67 +296,83 @@ export function StreamHeader({
     loading: 'var(--warning, #d7b56d)',
   };
 
+  // Layout is done with inline styles so it does not depend on which utility
+  // classes the host app happens to ship.
+  //
+  // The header is two groups. The left one (protocol, method, counts) shrinks
+  // and truncates first; the right one (status, actions) never shrinks, and
+  // drops to a second line when the panel is too narrow for both. That keeps
+  // Export and the other actions on screen at any panel width.
+  const truncate: React.CSSProperties = { minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' };
+
   return (
     <div
-      className={`flex items-center gap-2 py-[7px] px-[10px] cursor-pointer select-none
+      className={`flex items-center py-[7px] px-[10px] cursor-pointer select-none
         border-b border-border transition-colors
         ${expanded ? 'bg-panel' : 'bg-bg'} hover:bg-panel`}
+      style={{ flexWrap: 'wrap', columnGap: 8, rowGap: 4 }}
       onClick={onToggle}
     >
-      {/* Chevron */}
-      <svg
-        width="12"
-        height="12"
-        viewBox="0 0 12 12"
-        fill="none"
-        className="text-comment flex-shrink-0"
-        style={{
-          transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
-          transition: 'transform 0.2s',
-        }}
-      >
-        <path
-          d="M3 4.5L6 7.5L9 4.5"
-          stroke="currentColor"
-          strokeWidth="1.5"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-      </svg>
-
-      {/* Call type icon */}
-      {callTypeIcon && <span className="flex-shrink-0">{callTypeIcon}</span>}
-
-      {/* Protocol label */}
-      <span className="text-[12px] font-bold text-text flex-shrink-0">{protocol}</span>
-
-      {/* Method label */}
-      {methodLabel && (
-        <span className="text-[11px] text-comment font-mono flex-shrink-0">{methodLabel}</span>
-      )}
-
-      {/* Stats */}
-      <StreamStatsBar items={items} />
-
-      {/* Spacer */}
-      <span className="flex-1" />
-
-      {/* Status */}
-      <span className="flex items-center gap-[5px] text-[11px] text-comment font-mono flex-shrink-0">
-        <span
-          className="w-[6px] h-[6px] rounded-full flex-shrink-0"
+      <div className="flex items-center gap-2" style={{ flex: '1 1 120px', minWidth: 0 }}>
+        {/* Chevron */}
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 12 12"
+          fill="none"
+          className="text-comment flex-shrink-0"
           style={{
-            background: dotColors[statusDot] || dotColors.closed,
-            opacity: statusDot === 'closed' ? 0.5 : 1,
+            transform: expanded ? 'rotate(0deg)' : 'rotate(-90deg)',
+            transition: 'transform 0.2s',
           }}
-        />
-        {statusText}
-      </span>
+        >
+          <path
+            d="M3 4.5L6 7.5L9 4.5"
+            stroke="currentColor"
+            strokeWidth="1.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+        </svg>
 
-      {/* Actions */}
-      {actions && (
-        <span className="flex items-center gap-[2px] ml-2">{actions}</span>
-      )}
+        {/* Call type icon */}
+        {callTypeIcon && <span className="flex-shrink-0">{callTypeIcon}</span>}
+
+        {/* Protocol label */}
+        <span className="text-[12px] font-bold text-text flex-shrink-0">{protocol}</span>
+
+        {/* Method label */}
+        {methodLabel && (
+          <span className="text-[11px] text-comment font-mono" style={truncate} title={methodLabel}>{methodLabel}</span>
+        )}
+
+        {/* Stats */}
+        <span style={{ ...truncate, flexShrink: 2 }}>
+          <StreamStatsBar items={items} />
+        </span>
+      </div>
+
+      <div
+        className="flex items-center"
+        style={{ flex: '0 0 auto', maxWidth: '100%', marginLeft: 'auto', flexWrap: 'wrap', justifyContent: 'flex-end', rowGap: 4 }}
+      >
+        {/* Status */}
+        <span className="flex items-center gap-[5px] text-[11px] text-comment font-mono flex-shrink-0">
+          <span
+            className="w-[6px] h-[6px] rounded-full flex-shrink-0"
+            style={{
+              background: dotColors[statusDot] || dotColors.closed,
+              opacity: statusDot === 'closed' ? 0.5 : 1,
+            }}
+          />
+          {statusText}
+        </span>
+
+        {/* Actions */}
+        {actions && (
+          <span className="flex items-center gap-[2px] ml-2 flex-shrink-0">{actions}</span>
+        )}
+      </div>
     </div>
   );
 }
@@ -379,7 +395,7 @@ export function StreamActionBtn({
         ${danger ? 'hover:text-red-400' : 'hover:text-accent'}
         hover:bg-[rgba(255,255,255,0.04)]`}
       onClick={onClick}
-      style={{ letterSpacing: '0.3px' }}
+      style={{ letterSpacing: '0.3px', whiteSpace: 'nowrap' }}
     >
       {children}
     </button>
